@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Custom Dropdown Filter</title>
+    <style>
+        .dropdown {
+            width: 300px; /* 設定下拉選單寬度 */
+            font-size: 14px; /* 調整字體大小 */
+        }
+    </style>
+</head>
+<body>
+    <div id="vizContainer" style="width: 800px; height: 600px;"></div>
+    <select id="customDropdown" class="dropdown">
+        <!-- 選項將動態填充 -->
+    </select>
+    <script src="https://public.tableau.com/javascripts/api/tableau-2.8.0.min.js"></script>
+    <script>
+        var viz;
+
+        function initViz() {
+            var containerDiv = document.getElementById("vizContainer"),
+                url = "YOUR_VIZ_URL"; // 替換為你的Tableau儀表板URL
+            var options = {
+                hideTabs: true,
+                onFirstInteractive: function () {
+                    loadFilterOptions();
+                }
+            };
+            viz = new tableau.Viz(containerDiv, url, options);
+        }
+
+        function loadFilterOptions() {
+            var sheet = viz.getWorkbook().getActiveSheet();
+            sheet.getWorksheets().forEach(function (worksheet) {
+                worksheet.getFiltersAsync().then(function (filters) {
+                    var dropdown = document.getElementById("customDropdown");
+                    filters.forEach(function (filter) {
+                        if (filter.getFieldName() === "YOUR_FILTER_FIELD_NAME") { // 替換為你的篩選器字段名稱
+                            filter.getAppliedValues().forEach(function (value) {
+                                var option = document.createElement("option");
+                                option.text = value.formattedValue;
+                                option.value = value.value;
+                                dropdown.add(option);
+                            });
+                        }
+                    });
+                });
+            });
+        }
+
+        document.getElementById("customDropdown").addEventListener("change", function() {
+            var selectedOption = this.value;
+            var sheet = viz.getWorkbook().getActiveSheet();
+            sheet.applyFilterAsync("YOUR_FILTER_FIELD_NAME", selectedOption, tableau.FilterUpdateType.REPLACE); // 替換為你的篩選器字段名稱
+        });
+
+        window.onload = initViz;
+    </script>
+</body>
+</html>
